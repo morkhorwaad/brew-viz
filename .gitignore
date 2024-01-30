@@ -1,0 +1,12 @@
+## VIRTUAL ENVIRONMENT
+brew_viz_venv/
+
+## ENVIRONMENT VARIABLES
+.env
+
+## OPTIMIZED FILES
+__pycache__/
+*.py[cod]
+
+## VSCODE FILES
+.vscode/
