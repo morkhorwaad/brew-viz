@@ -1,4 +1,4 @@
-### VISUALIZING VERMONT BREWERY DATA!
+# VISUALIZING VERMONT BREWERY DATA!
 
 This is a little project to put together some skills I'm learning: 
     - Python
@@ -15,6 +15,6 @@ Right now, it's just a scaffold, but the idea is this:
     3. Visualize! 
         a. We'll burn this bridge when we get to it. 
 
-## SECRET REQUIREMENTS
+### SECRET REQUIREMENTS
 
 This is using the Untappd API, so you need a root-level .env file with UNTAPPD_CLIENT_ID and UNTAPPD_CLIENT_SECRET defined in it. 
