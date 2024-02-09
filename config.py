@@ -22,3 +22,10 @@ UNTAPPD_API_URLS = {
     "BEER_SEARCH": urljoin(UNTAPPD_API_BASE_URL, "search/beer/"),
     "BEER_INFO": urljoin(UNTAPPD_API_BASE_URL, "beer/info/"),
 }
+
+MORK_COLORS = {
+    "BLACK": "#414141",
+    "WHITE": "#e7e5d6",
+    "BLUE": "#266DD3",
+    "LIGHTBLUE": "#93c5e2"
+}

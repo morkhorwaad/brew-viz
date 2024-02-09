@@ -17,7 +17,7 @@ if normalized_root_path not in sys.path:
     sys.path.append(normalized_root_path)
 
 # Load the JSON file as a python object to build DFs
-from config import PROCESSED_DATA_PATH
+from config import PROCESSED_DATA_PATH, MORK_COLORS
 
 BEER_DATA_PATH = PROCESSED_DATA_PATH / 'normalized_beer_data.csv'
 BREWERY_DATA_PATH = PROCESSED_DATA_PATH / 'normalized_brewery_data.csv'
@@ -38,7 +38,7 @@ brewery_df['label'] = np.where(
     ""
 )
 
-fix, ax = plt.subplots()
+fig, ax = plt.subplots()
 
 ax.scatter(
     brewery_df["beer_count"],
@@ -69,9 +69,9 @@ xtick_labels = [str(xval) if xval == bc_min or xval == bc_max else '' for xval i
 ytick_labels = [str(yval) if yval == rs_min or yval == rs_max else '' for yval in brewery_df['rating_score']]
 
 ax.set_xticks(brewery_df['beer_count'])
-ax.set_xticklabels(xtick_labels)
+ax.set_xticklabels(xtick_labels, color=MORK_COLORS["BLACK"])
 ax.set_yticks(brewery_df['rating_score'])
-ax.set_yticklabels(ytick_labels)
+ax.set_yticklabels(ytick_labels, color=MORK_COLORS["BLACK"])
 
 xlim = plt.xlim()
 ylim = plt.ylim()
@@ -89,16 +89,19 @@ for i, (idx, row) in enumerate(bdf_labels.iterrows()):
         xytext=(text_x, text_y), 
         ha='left',
         va='center',
-        arrowprops=dict(arrowstyle="->", connectionstyle="arc3", alpha=0.5, color='gray'),
+        arrowprops=dict(arrowstyle="->", connectionstyle="arc3", alpha=0.5, color=MORK_COLORS["BLACK"]),
         bbox=dict(boxstyle="round,pad=0.3", edgecolor="none", alpha=0.5),
         fontsize='x-small')
 
 
-ax.set_title("Breweries in Vermont")
-ax.set_xlabel("Number of distinct beers")
-ax.set_ylabel("Average Untappd Rating")
+ax.set_title("Breweries in Vermont", loc='center', color=MORK_COLORS["BLACK"], fontweight='bold', fontsize='16', fontname="Times New Roman")
+ax.set_xlabel("Number of distinct beers", loc='center', color=MORK_COLORS["BLACK"], fontsize='12')
+ax.set_ylabel("Average Untappd Rating", loc='center', color=MORK_COLORS["BLACK"], fontsize='12')
 
-ax.text(0, ylim[0] - .25, 'The size of the dot represents the total number of reviews the brewery has gotten on Untappd')
+fig.patch.set_facecolor(MORK_COLORS["WHITE"])
+ax.set_facecolor(MORK_COLORS["WHITE"])
+
+ax.text(0, ylim[0] - .25, 'The size of the dot represents the total number of reviews the brewery has gotten on Untappd', color=MORK_COLORS["BLACK"])
 
 # Remove frame (spines)
 ax.spines['top'].set_visible(False)
