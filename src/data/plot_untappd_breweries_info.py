@@ -160,9 +160,9 @@ def make_best_worst_quadrant_chart(brewery_df):
 
     colors = {
         q1: 'blue',
-        q2: 'green',
+        q2: 'orange',
         q3: 'red',
-        q4: 'orange'}
+        q4: 'green'}
 
     for quadrant, group in brewery_df.groupby('quadrant'):
         ax.scatter(group['rating_score'], group['rating_count'],
