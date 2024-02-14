@@ -176,10 +176,7 @@ def make_best_worst_quadrant_chart(brewery_df, include_inactive=True, write_to_f
         ax.scatter(group['rating_score'], group['rating_count'],
                    label=quadrant, color=colors[quadrant])
         
-        print(f"plotting {quadrant}")
-        
         if(write_to_file == True):
-            print(f"writing {quadrant}")
             quadrant_file_name = PROCESSED_DATA_PATH / str(f"{files[quadrant]}.csv")
             group.to_csv(quadrant_file_name, index=False)
 

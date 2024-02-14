@@ -3,6 +3,9 @@ import sys
 import os 
 import json
 
+from dateutil import parser
+from datetime import datetime
+
 import pandas as pd
 
 # we'll play around with this later...
@@ -68,6 +71,30 @@ def sanitize_string(value):
         value = f'"{value}"'
     return value
 
+def sanitize_date(date_str):
+    """
+    Converts a date string into the standardized format 'YYYY-MM-DD'.
+    If the input is not a recognizable date format, an exception will be raised.
+    
+    Args:
+    date_str (str): The date string to be sanitized.
+    
+    Returns:
+    str: The sanitized date string in 'YYYY-MM-DD' format.
+    """
+    try:
+        # Attempt to parse the date string using dateutil.parser
+        parsed_date = parser.parse(date_str)
+        
+        # Format the date as YYYY-MM-DD
+        sanitized_date = parsed_date.strftime('%Y-%m-%d')
+        
+        return sanitized_date
+    except ValueError as e:
+        # Raise an exception if the date_str cannot be parsed
+        raise ValueError(f"Could not parse the date string '{date_str}': {e}")
+
+
 def extract_untappd_info():
     # open the stored JSON file
     with open(RETRIEVED_UNTAPPD_DATA_FILE, 'r') as file:
@@ -76,6 +103,7 @@ def extract_untappd_info():
     # Make starting dicts of info we want to separate
     brewery_info = []
     beer_info = []
+    checkin_info = []
     
     for ut_brewery_id, ut_brewery in raw_untappd_data.items(): 
         # extract the basic brewery information 
@@ -100,26 +128,46 @@ def extract_untappd_info():
         for beer_item in ut_brewery['beer_list']['items']:
             beer = beer_item['beer']
             new_beer = {
-                'brewery_id': ut_brewery_id,
                 'beer_id': sanitize_number(beer['bid']),
+                'brewery_id': ut_brewery_id,
                 'beer_name': sanitize_string(beer['beer_name']), 
                 'beer_style': sanitize_string(beer['beer_style']),
                 'beer_abv': sanitize_number(beer['beer_abv']),
                 'beer_ibu': sanitize_number(beer['beer_ibu']), 
-                'created_at': beer['created_at'], 
+                'created_at': sanitize_date(beer['created_at']), 
                 'rating_score': sanitize_number(beer['rating_score']),
                 'rating_count': sanitize_number(beer['rating_count']),
                 'total_count': sanitize_number(beer_item['total_count'])
             }
             beer_info.append(new_beer)
+            
+        for checkin_item in ut_brewery['checkins']['items']:
+            has_venue = checkin_item['venue'] != []
+            new_checkin = {
+                'checkin_id': sanitize_number(checkin_item['checkin_id']),
+                'brewery_id': ut_brewery_id,
+                'beer_id': sanitize_number(checkin_item['beer']['bid']),
+                'checkin_created_on': checkin_item['created_at'],
+                'checkin_comment': sanitize_string(checkin_item['checkin_comment']),
+                'checkin_rating': sanitize_number(checkin_item['rating_score']),
+                'checkin_venue_category': sanitize_string(checkin_item['venue']['primary_category']) if has_venue else '',
+                'checkin_location_address': sanitize_string(checkin_item['venue']['location']['venue_address']) if has_venue else '',
+                'checkin_location_city': sanitize_string(checkin_item['venue']['location']['venue_city']) if has_venue else '',
+                'checkin_location_state': sanitize_string(checkin_item['venue']['location']['venue_state']) if has_venue else '',
+                'checkin_location_country': sanitize_string(checkin_item['venue']['location']['venue_country']) if has_venue else '',
+                'checkin_location_lat': sanitize_number(checkin_item['venue']['location']['lat']) if has_venue else '',
+                'checkin_location_lng': sanitize_number(checkin_item['venue']['location']['lng']) if has_venue else '',
+            }
+            checkin_info.append(new_checkin)
         
-    return brewery_info, beer_info
+    return brewery_info, beer_info, checkin_info
 
 
-brewery_info, beer_info = extract_untappd_info()
+brewery_info, beer_info, checkin_info = extract_untappd_info()
     
 brewery_df = pd.DataFrame(brewery_info)
 beer_df = pd.DataFrame(beer_info)
+checkin_df = pd.DataFrame(checkin_info)
 
 brewery_na_per_column = brewery_df.isna().sum()
 print(f"NaN values in Brewery DF: {brewery_na_per_column}")
@@ -129,6 +177,9 @@ beer_na_per_column = beer_df.isna().sum()
 print(f"NaN values in Beer DF: {beer_na_per_column}")
 ## RESULTS: 0 NaN values. Nice. 
 
+checkin_na_per_column = checkin_df.isna().sum()
+print(f"NaN values in Checkin DF: {checkin_na_per_column}")
+
 brewery_df_csv = PROCESSED_DATA_PATH / "normalized_brewery_data.csv"
 print(f"Writing Brewery DF to {brewery_df_csv}...")
 brewery_df.to_csv(brewery_df_csv)
@@ -136,5 +187,9 @@ brewery_df.to_csv(brewery_df_csv)
 beer_df_csv = PROCESSED_DATA_PATH / "normalized_beer_data.csv"
 print(f"Writing Beer DF to {beer_df_csv}...")
 beer_df.to_csv(beer_df_csv)
+
+checkin_df_csv = PROCESSED_DATA_PATH / "normalized_checkin_data.csv"
+print(f"Writing Checkin DF to {checkin_df_csv}...")
+checkin_df.to_csv(checkin_df_csv)
 
 # %%

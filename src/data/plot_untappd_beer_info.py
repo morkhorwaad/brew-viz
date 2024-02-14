@@ -17,7 +17,7 @@ if normalized_root_path not in sys.path:
     sys.path.append(normalized_root_path)
 
 # Load the JSON file as a python object to build DFs
-from config import PROCESSED_DATA_PATH, MORK_COLORS
+from config import PROCESSED_DATA_PATH, INITIAL_DATA_PATH, MORK_COLORS
 
 def make_horizontal_bar_chart(x, y, title, xlabel="", ylabel=""): 
     # Create bar chart
@@ -111,8 +111,8 @@ def plot_type_vs_abv_heatmap(beer_df):
     # style_and_abv_pivot = beer_style_and_abv.pivot(index='beer_style', columns='beer_abv', values='rating_score')
     # sns.heatmap(style_and_abv_pivot, annot=True, cmap="YlGnBu", vmin=-1, vmax=1)
 
-    style_and_abv = beer_df.groupby(['ABV_Category', 'Beer_Type'])['rating_score'].mean().reset_index()
-    sa_pivot = style_and_abv.pivot(index='Beer_Type', columns='ABV_Category', values='rating_score')
+    style_and_abv = beer_df.groupby(['ABV_Category', 'beer_type'])['rating_score'].mean().reset_index()
+    sa_pivot = style_and_abv.pivot(index='beer_type', columns='ABV_Category', values='rating_score')
     max_rating = style_and_abv['rating_score'].max()
     min_rating = style_and_abv['rating_score'].min()
     
@@ -160,38 +160,10 @@ abv_bins = [0, 5, 8, 10, float('inf')]
 abv_labels = ['Low (<5%)', 'Medium (5-8%)', 'High (8-10%)', 'Very High (>10%)']
 beer_df['ABV_Category'] = pd.cut(beer_df['beer_abv'], bins=abv_bins, labels=abv_labels, right=False)
 
-style_to_type = {
-    'IPA': 'IPA', 
-    'Stout': 'Dark', 
-    'Sour': 'Sour', 
-    'Märzen': 'Amber', 
-    'Pale Ale': 'IPA', 
-    'Scotch Ale': 'Dark', 
-    'Kölsch': 'Light', 
-    'Lager': 'Light', 
-    'Wheat': 'Light', 
-    'Pilsner': 'Light', 
-    'Cream Ale': 'Light', 
-    'Fruit': 'Light', 
-    'Strong Ale': 'Dark',
-    'Festbier': 'Light', 
-    'Brown Ale': 'Dark', 
-    'Red Ale': 'Amber', 
-    'Farmhouse Ale': 'Sour', 
-    'Wild Ale': 'Sour', 
-    'Spiced': 'Amber', 
-    'Kellerbier': 'Light',
-    'Bitter': 'Amber', 
-    'Schwarzbier': 'Amber', 
-}
+style_to_type_file = INITIAL_DATA_PATH / "beer_styles_with_types.csv"
+style_df = pd.read_csv(style_to_type_file)
 
-def map_style_to_type(beer_style):
-    for key in style_to_type.keys(): 
-        if(beer_style.startswith(key)): 
-            return style_to_type[key]
-    return 'Other'
-
-beer_df['Beer_Type'] = beer_df['beer_style'].apply(lambda x: map_style_to_type(x))
+beer_df = pd.merge(beer_df, style_df, on='beer_style', how='left')
 
 plot_type_vs_abv_heatmap(beer_df)
 #plot_highest_rated_styles(beer_styles)
