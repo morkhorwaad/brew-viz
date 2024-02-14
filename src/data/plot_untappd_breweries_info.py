@@ -1,9 +1,6 @@
 # %%
-from config import PROCESSED_DATA_PATH, MORK_COLORS
 import sys
 import os
-import json
-import time
 
 import pandas as pd
 import numpy as np
@@ -18,8 +15,9 @@ normalized_root_path = os.path.normpath(root_dir)
 if normalized_root_path not in sys.path:
     sys.path.append(normalized_root_path)
 
-# Load the JSON file as a python object to build DFs
+from config import PROCESSED_DATA_PATH, MORK_COLORS
 
+# Load the JSON file as a python object to build DFs
 BEER_DATA_PATH = PROCESSED_DATA_PATH / 'normalized_beer_data.csv'
 BREWERY_DATA_PATH = PROCESSED_DATA_PATH / 'normalized_brewery_data.csv'
 
@@ -138,10 +136,13 @@ def label_outliers(sub_df):
         outliers = sub_df[sub_df['rating_score'] < rating_threshold]
     return outliers
 
-def make_best_worst_quadrant_chart(brewery_df):
+def make_best_worst_quadrant_chart(brewery_df, include_inactive=True, write_to_file=False):
 
     # CHAT GPT HELPING OUT
     fig, ax = plt.subplots(figsize=(10, 8))
+   
+    if(include_inactive == False):
+       brewery_df = brewery_df.query('brewery_in_production == 0')
    
     num_labels_per_category = 5
     median_rating = brewery_df['rating_score'].median()
@@ -163,10 +164,24 @@ def make_best_worst_quadrant_chart(brewery_df):
         q2: 'orange',
         q3: 'red',
         q4: 'green'}
+    
+    files = {
+        q1: 'hypeworthy',
+        q2: 'overrated', 
+        q3: 'meh', 
+        q4: 'hidden_gems'
+    }
 
     for quadrant, group in brewery_df.groupby('quadrant'):
         ax.scatter(group['rating_score'], group['rating_count'],
                    label=quadrant, color=colors[quadrant])
+        
+        print(f"plotting {quadrant}")
+        
+        if(write_to_file == True):
+            print(f"writing {quadrant}")
+            quadrant_file_name = PROCESSED_DATA_PATH / str(f"{files[quadrant]}.csv")
+            group.to_csv(quadrant_file_name, index=False)
 
     ax.set_yscale('log')
     ax.legend()
@@ -230,7 +245,7 @@ def make_best_worst_quadrant_chart(brewery_df):
 brewery_df = pd.read_csv(BREWERY_DATA_PATH, index_col=0)
 
 # make_brewery_bubble_scatter(brewery_df)
-make_best_worst_quadrant_chart(brewery_df)
+make_best_worst_quadrant_chart(brewery_df, include_inactive=False, write_to_file=True)
 
 
 # %%

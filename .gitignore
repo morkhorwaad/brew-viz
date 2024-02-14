@@ -11,6 +11,5 @@ __pycache__/
 ## VSCODE FILES
 .vscode/
 
-## RETRIEVED & PROCESSED DATA (LARGE!)
+## PROCESSED DATA (LARGE!)
 /data/processed/
-/data/retrieved/
